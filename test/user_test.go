@@ -36,16 +36,13 @@ func TestSignup(t *testing.T) {
 		db.SetDB(testDB)
 
 		defer testDB.Close()
-
 		
 		mock.ExpectBegin()
 
-		// Mock the expected SQL query and arguments
 		mock.ExpectQuery(`INSERT INTO "users" \("created_at","updated_at","deleted_at","name","email","password"\) VALUES \(\$1,\$2,\$3,\$4,\$5,\$6\) RETURNING "users"."id"`).
 			WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), nil, "Test User", "testuser@example.com", sqlmock.AnyArg()).
 			WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
 
-		// Mock transaction commit
 		mock.ExpectCommit()
 
 		router := gin.Default()
@@ -58,7 +55,7 @@ func TestSignup(t *testing.T) {
 		w := httptest.NewRecorder()
 		router.ServeHTTP(w, req)
 
-		// Log response details
+	
 		if w.Code != http.StatusOK {
 			t.Logf("Response Code: %d", w.Code)
 			t.Logf("Response Body: %s", w.Body.String())
@@ -71,9 +68,35 @@ func TestSignup(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, "User created successfully", response["message"])
 
-		// Ensure all expectations were met
 		if err := mock.ExpectationsWereMet(); err != nil {
 			t.Errorf("mock expectations were not met: %v", err)
 		}
+	})
+	t.Run("Invalid signup", func(t *testing.T) {
+		
+		router := gin.Default()
+		router.POST("/signup", handlers.Signup)
+
+		payload := `{"name": "", "email": "", "password": ""}`
+		req, _ := http.NewRequest("POST", "/signup", bytes.NewBuffer([]byte(payload)))
+		req.Header.Set("Content-Type", "application/json")
+
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+	
+		if w.Code != 400 {
+			t.Logf("Response Code: %d", w.Code)
+			t.Logf("Response Body: %s", w.Body.String())
+		}
+
+		require.Equal(t, 400, w.Code)
+
+		var response map[string]string
+		err := json.Unmarshal(w.Body.Bytes(), &response)
+		require.NoError(t, err)
+		assert.Equal(t, "All fields are required", response["error"])
+
+		
 	})
 }

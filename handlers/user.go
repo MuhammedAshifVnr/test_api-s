@@ -11,9 +11,9 @@ import (
 )
 
 type SignupInput struct {
-	Name     string `json:"name" binding:"required"`
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required"`
+	Name     string `json:"name" `
+	Email    string `json:"email" `
+	Password string `json:"password" `
 }
 
 func Signup(c *gin.Context) {
@@ -24,6 +24,10 @@ func Signup(c *gin.Context) {
 		return
 	}
 
+	if input.Name == "" || input.Email == "" || input.Password == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "All fields are required"})
+		return
+	}
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 	if err != nil {
 		log.Println("Failed to hash password:", err)
