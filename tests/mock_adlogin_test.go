@@ -57,7 +57,6 @@ func TestAdminLogin(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	t.Run("successful admin login", func(t *testing.T) {
-		// Mock query for successful admin login
 		password, _ := bcrypt.GenerateFromPassword([]byte("adminpassword"), bcrypt.DefaultCost)
 		mock.ExpectQuery(`SELECT \* FROM "admins" WHERE email = \$1 ORDER BY "admins"\."name" LIMIT \$2`).
 			WithArgs("admin@example.com", 1).
@@ -66,7 +65,6 @@ func TestAdminLogin(t *testing.T) {
 
 		router := gin.Default()
 		router.POST("/admin/login", handlers.AdminLogin)
-
 		loginInput := handlers.AdminLoginInput{
 			Email:    "admin@example.com",
 			Password: "adminpassword",
@@ -83,14 +81,12 @@ func TestAdminLogin(t *testing.T) {
 	})
 
 	t.Run("invalid email", func(t *testing.T) {
-		// Mock query for invalid email
 		mock.ExpectQuery(`SELECT \* FROM "admins" WHERE email = \$1 ORDER BY "admins"\."name" LIMIT \$2`).
 			WithArgs("wrongadmin@example.com", 1).
 			WillReturnRows(sqlmock.NewRows([]string{"id", "name", "email", "password"}))
 
 		router := gin.Default()
 		router.POST("/admin/login", handlers.AdminLogin)
-
 		loginInput := handlers.AdminLoginInput{
 			Email:    "wrongadmin@example.com",
 			Password: "adminpassword",
@@ -107,7 +103,6 @@ func TestAdminLogin(t *testing.T) {
 	})
 
 	t.Run("invalid password", func(t *testing.T) {
-		// Mock query for invalid password
 		password, _ := bcrypt.GenerateFromPassword([]byte("adminpassword"), bcrypt.DefaultCost)
 		mock.ExpectQuery(`SELECT \* FROM "admins" WHERE email = \$1 ORDER BY "admins"\."name" LIMIT \$2`).
 			WithArgs("admin@example.com", 1).
@@ -116,7 +111,6 @@ func TestAdminLogin(t *testing.T) {
 
 		router := gin.Default()
 		router.POST("/admin/login", handlers.AdminLogin)
-
 		loginInput := handlers.AdminLoginInput{
 			Email:    "admin@example.com",
 			Password: "wrongpassword",

@@ -61,7 +61,6 @@ func TestLogin(t *testing.T) {
 
 		router := gin.Default()
 		router.POST("/login", handlers.Login)
-
 		loginInput := handlers.LoginInput{
 			Email:    "test@example.com",
 			Password: "password123",
@@ -84,7 +83,6 @@ func TestLogin(t *testing.T) {
 
 		router := gin.Default()
 		router.POST("/login", handlers.Login)
-
 		loginInput := handlers.LoginInput{
 			Email:    "wrong@example.com",
 			Password: "password123",
@@ -109,7 +107,6 @@ func TestLogin(t *testing.T) {
 
 		router := gin.Default()
 		router.POST("/login", handlers.Login)
-
 		loginInput := handlers.LoginInput{
 			Email:    "test@example.com",
 			Password: "wrongpassword",
