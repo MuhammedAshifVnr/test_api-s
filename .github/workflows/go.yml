@@ -10,28 +10,39 @@ on:
     branches: [ "master" ]
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
     services:
       postgres:
         image: postgres:latest
         env:
-          POSTGRES_DB: sample
+          POSTGRES_DB: testdb
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: 0000
         ports:
           - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
     - name: Set up Go
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@v2
       with:
-        go-version: 1.22
+        go-version: '1.17'
 
-    - name: Build
-      run: go build -v ./...
+    - name: Wait for Postgres
+      run: until pg_isready --host=localhost --port=5432; do echo "Waiting for postgres..."; sleep 1; done
 
-    - name: Test
-      run: go test -v ./tests
+    - name: Install dependencies
+      run: go mod download
+
+    - name: Run tests
+      env:
+        TEST_DSN: "host=localhost user=postgres dbname=testdb sslmode=disable password=0000"
+      run: go test -v ./...
