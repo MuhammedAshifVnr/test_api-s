@@ -47,6 +47,6 @@ jobs:
 
     - name: Test
       env:
-        POSTGRES_DSN: "host=localhost user=testuser password=testpass dbname=testdb port=5432 sslmode=disable TimeZone=Asia/Shanghai"
+        POSTGRES_DSN: "host=localhost user=postgres password=0000 dbname=sample sslmode=disable port=5432 sslmode=disable TimeZone=Asia/Shanghai"
       run: go test -v ./...
 
