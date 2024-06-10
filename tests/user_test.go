@@ -1,4 +1,4 @@
-package test
+package tests
 
 import (
 	"bytes"
@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func SetupTestDB() (*gorm.DB, sqlmock.Sqlmock) {
+func SetupTestDBSignup() (*gorm.DB, sqlmock.Sqlmock) {
 	mockDB, mock, err := sqlmock.New()
 	if err != nil {
 		panic("failed to open sqlmock database connection")
@@ -32,11 +32,11 @@ func TestSignup(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	t.Run("valid signup", func(t *testing.T) {
-		testDB, mock := SetupTestDB()
+		testDB, mock := SetupTestDBSignup()
 		db.SetDB(testDB)
 
 		defer testDB.Close()
-		
+
 		mock.ExpectBegin()
 
 		mock.ExpectQuery(`INSERT INTO "users" \("created_at","updated_at","deleted_at","name","email","password"\) VALUES \(\$1,\$2,\$3,\$4,\$5,\$6\) RETURNING "users"."id"`).
@@ -55,7 +55,6 @@ func TestSignup(t *testing.T) {
 		w := httptest.NewRecorder()
 		router.ServeHTTP(w, req)
 
-	
 		if w.Code != http.StatusOK {
 			t.Logf("Response Code: %d", w.Code)
 			t.Logf("Response Body: %s", w.Body.String())
@@ -73,7 +72,7 @@ func TestSignup(t *testing.T) {
 		}
 	})
 	t.Run("Invalid signup", func(t *testing.T) {
-		
+
 		router := gin.Default()
 		router.POST("/signup", handlers.Signup)
 
@@ -84,7 +83,6 @@ func TestSignup(t *testing.T) {
 		w := httptest.NewRecorder()
 		router.ServeHTTP(w, req)
 
-	
 		if w.Code != 400 {
 			t.Logf("Response Code: %d", w.Code)
 			t.Logf("Response Body: %s", w.Body.String())
@@ -97,6 +95,5 @@ func TestSignup(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, "All fields are required", response["error"])
 
-		
 	})
 }

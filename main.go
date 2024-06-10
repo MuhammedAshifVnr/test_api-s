@@ -13,5 +13,9 @@ func main() {
 
 	r := gin.Default()
 	r.POST("/signup", handlers.Signup)
+	r.POST("/login", handlers.Login)
+	
+	r.POST("/admin/login",handlers.AdminLogin)
+	r.GET("/admin/getuser",handlers.GetAllUsers)
 	r.Run()
 }

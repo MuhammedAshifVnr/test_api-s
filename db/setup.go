@@ -11,15 +11,15 @@ import (
 var DB *gorm.DB
 
 func Init(dsn string) {
-    var err error
-    DB, err = gorm.Open("postgres", dsn)
-    if err != nil {
-        log.Fatal("Failed to connect to the database:", err)
-    }
+	var err error
+	DB, err = gorm.Open("postgres", dsn)
+	if err != nil {
+		log.Fatal("Failed to connect to the database:", err)
+	}
 
-    DB.AutoMigrate(&models.User{})
+	DB.AutoMigrate(&models.User{}, &models.Admin{})
 }
 
 func SetDB(database *gorm.DB) {
-    DB = database
+	DB = database
 }
