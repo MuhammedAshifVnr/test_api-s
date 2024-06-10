@@ -10,30 +10,55 @@ import (
 	"test/models"
 	"testing"
 
+	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
-func setupTestDB() {
-	dsn := "host=localhost user=postgres dbname=testdb sslmode=disable password=0000"
-	db.Init(dsn)
+func setupTestDB(t *testing.T) (sqlmock.Sqlmock, func()) {
+	mockDB, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("failed to open sqlmock database: %v", err)
+	}
 
-	// Clean the database
+	dialector := postgres.New(postgres.Config{
+		Conn: mockDB,
+	})
+
+	database, err := gorm.Open(dialector, &gorm.Config{})
+	if err != nil {
+		t.Fatalf("failed to initialize database: %v", err)
+	}
+
+	db.SetDB(database)
+	mock.ExpectExec("DELETE FROM users").WillReturnResult(sqlmock.NewResult(0, 0))
 	db.DB.Exec("DELETE FROM users")
-
-	// Create a test user
 	password, _ := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.DefaultCost)
 	testUser := models.User{Name: "Test User", Email: "test@example.com", Password: string(password)}
 	db.DB.Create(&testUser)
+
+	cleanup := func() {
+		mockDB.Close()
+	}
+	return mock, cleanup
 }
 
 func TestLogin(t *testing.T) {
-	setupTestDB()
+	mock, cleanup := setupTestDB(t)
+	defer cleanup()
 
 	gin.SetMode(gin.TestMode)
 
 	t.Run("successful login", func(t *testing.T) {
+		password, _ := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.DefaultCost)
+		mock.ExpectQuery(`SELECT \* FROM "users" WHERE email = \$1 ORDER BY "users"\."id" LIMIT \$2`).
+			WithArgs("test@example.com", 1).
+			WillReturnRows(sqlmock.NewRows([]string{"id", "name", "email", "password"}).
+				AddRow(1, "Test User", "test@example.com", string(password)))
+
 		router := gin.Default()
 		router.POST("/login", handlers.Login)
 
@@ -53,6 +78,10 @@ func TestLogin(t *testing.T) {
 	})
 
 	t.Run("invalid email", func(t *testing.T) {
+		mock.ExpectQuery(`SELECT \* FROM "users" WHERE email = \$1 ORDER BY "users"\."id" LIMIT \$2`).
+			WithArgs("wrong@example.com", 1).
+			WillReturnRows(sqlmock.NewRows([]string{"id", "name", "email", "password"}))
+
 		router := gin.Default()
 		router.POST("/login", handlers.Login)
 
@@ -72,6 +101,12 @@ func TestLogin(t *testing.T) {
 	})
 
 	t.Run("invalid password", func(t *testing.T) {
+		password, _ := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.DefaultCost)
+		mock.ExpectQuery(`SELECT \* FROM "users" WHERE email = \$1 ORDER BY "users"\."id" LIMIT \$2`).
+			WithArgs("test@example.com", 1).
+			WillReturnRows(sqlmock.NewRows([]string{"id", "name", "email", "password"}).
+				AddRow(1, "Test User", "test@example.com", string(password)))
+
 		router := gin.Default()
 		router.POST("/login", handlers.Login)
 

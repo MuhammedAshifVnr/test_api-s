@@ -4,15 +4,15 @@ import (
 	"log"
 	"test/models"
 
-	"github.com/jinzhu/gorm"
-	_ "github.com/lib/pq"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 var DB *gorm.DB
 
 func Init(dsn string) {
 	var err error
-	DB, err = gorm.Open("postgres", dsn)
+	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal("Failed to connect to the database:", err)
 	}
