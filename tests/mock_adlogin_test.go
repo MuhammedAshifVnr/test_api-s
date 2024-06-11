@@ -33,12 +33,10 @@ func setupAdminTestDB(t *testing.T) (sqlmock.Sqlmock, func()) {
 		t.Fatalf("failed to initialize database: %v", err)
 	}
 
-	// Clean the database
 	db.SetDB(database)
 	mock.ExpectExec("DELETE FROM admins").WillReturnResult(sqlmock.NewResult(0, 0))
 	db.DB.Exec("DELETE FROM admins")
 
-	// Create a test admin
 	password, _ := bcrypt.GenerateFromPassword([]byte("adminpassword"), bcrypt.DefaultCost)
 	testAdmin := models.Admin{Name: "Test Admin", Email: "admin@example.com", Password: string(password)}
 	db.DB.Create(&testAdmin)

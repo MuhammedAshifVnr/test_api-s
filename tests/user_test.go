@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"test/handlers"
 	"test/db"
+	"test/handlers"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
