@@ -69,7 +69,7 @@ func TestSignup(t *testing.T) {
 		var response map[string]string
 		err = json.Unmarshal(w.Body.Bytes(), &response)
 		require.NoError(t, err)
-		assert.Equal(t, "User created successfully", response["message"])
+		assert.Equal(t, "User created successfully now", response["message"])
 
 		if err := mock.ExpectationsWereMet(); err != nil {
 			t.Errorf("mock expectations were not met: %v", err)
